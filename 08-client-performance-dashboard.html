@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ravvis Media — Client Performance Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{--deep:#0e333b;--teal:#074f5e;--sky:#c4e1e9;--gold:#a89060;--white:#ffffff;--surface:#f4f9fb;--border:#daedf3;--text:#1a2e33;--muted:#5a7a82;--green:#2d8a5e;--red:#c0392b;--orange:#e67e22;--font:'Urbanist',sans-serif;}
+body{font-family:var(--font);background:#0e1a1d;color:var(--text);min-height:100vh;}
+
+/* TOP BAR */
+.topbar{background:rgba(14,51,59,0.95);border-bottom:1px solid rgba(196,225,233,0.1);padding:16px 40px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;backdrop-filter:blur(10px);}
+.topbar-left{display:flex;align-items:center;gap:20px;}
+.logo{font-size:16px;font-weight:800;color:var(--white);letter-spacing:-0.3px;}
+.logo span{color:var(--gold);}
+.divider{width:1px;height:20px;background:rgba(196,225,233,0.15);}
+.report-badge{background:rgba(168,144,96,0.15);border:1px solid rgba(168,144,96,0.25);border-radius:20px;padding:4px 14px;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:0.5px;}
+.topbar-right{display:flex;gap:10px;}
+.tb-btn{background:rgba(255,255,255,0.07);border:1px solid rgba(196,225,233,0.12);border-radius:8px;padding:7px 16px;font-family:var(--font);font-size:12px;font-weight:700;color:rgba(196,225,233,0.6);cursor:pointer;transition:all 0.2s;}
+.tb-btn:hover{background:rgba(255,255,255,0.12);color:var(--white);}
+.tb-btn.primary{background:var(--teal);color:var(--white);border-color:var(--teal);}
+.tb-btn.primary:hover{background:#0a6678;}
+
+/* MAIN LAYOUT */
+.main{padding:36px 40px;max-width:1200px;margin:0 auto;}
+
+/* CLIENT HEADER */
+.client-header{background:linear-gradient(135deg,rgba(7,79,94,0.9),rgba(14,51,59,0.95));border:1px solid rgba(196,225,233,0.1);border-radius:16px;padding:32px 36px;margin-bottom:28px;display:flex;justify-content:space-between;align-items:flex-start;}
+.client-info{}
+.client-tag{font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:rgba(196,225,233,0.4);margin-bottom:8px;}
+.client-name{font-size:28px;font-weight:800;color:var(--white);letter-spacing:-0.5px;margin-bottom:4px;}
+.client-name-input{background:transparent;border:none;font-family:var(--font);font-size:28px;font-weight:800;color:var(--white);letter-spacing:-0.5px;outline:none;width:400px;}
+.client-name-input::placeholder{color:rgba(255,255,255,0.2);}
+.client-period{font-size:14px;color:rgba(196,225,233,0.5);}
+.client-period input{background:rgba(255,255,255,0.07);border:1px solid rgba(196,225,233,0.12);border-radius:6px;padding:5px 12px;font-family:var(--font);font-size:13px;color:rgba(196,225,233,0.7);outline:none;margin-left:6px;}
+.client-right{display:flex;flex-direction:column;gap:8px;align-items:flex-end;}
+.primary-platform{background:rgba(255,255,255,0.06);border:1px solid rgba(196,225,233,0.1);border-radius:10px;padding:10px 18px;text-align:center;}
+.primary-platform label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(196,225,233,0.35);display:block;margin-bottom:4px;}
+.primary-platform select{background:transparent;border:none;font-family:var(--font);font-size:14px;font-weight:700;color:var(--gold);outline:none;cursor:pointer;}
+.primary-platform select option{background:#0e333b;color:white;}
+.health-badge{border-radius:20px;padding:6px 18px;font-size:12px;font-weight:700;cursor:pointer;border:none;}
+
+/* STAT CARDS */
+.stats-row{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:28px;}
+.stat-card{background:rgba(255,255,255,0.04);border:1px solid rgba(196,225,233,0.08);border-radius:12px;padding:18px 16px;text-align:center;transition:border-color 0.2s;}
+.stat-card:hover{border-color:rgba(196,225,233,0.2);}
+.stat-label{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(196,225,233,0.35);margin-bottom:10px;}
+.stat-value{font-size:26px;font-weight:800;color:var(--white);line-height:1;margin-bottom:6px;}
+.stat-input{background:transparent;border:none;font-family:var(--font);font-size:22px;font-weight:800;color:var(--white);text-align:center;width:100%;outline:none;}
+.stat-input::placeholder{font-size:18px;color:rgba(255,255,255,0.15);}
+.stat-change{font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:3px;}
+.stat-change input{background:transparent;border:none;font-family:var(--font);font-size:11px;font-weight:700;text-align:center;width:80px;outline:none;}
+.up{color:#2ecc71;} .down{color:var(--red);} .flat{color:var(--muted);}
+
+/* SECTION CARDS */
+.section-card{background:rgba(255,255,255,0.03);border:1px solid rgba(196,225,233,0.08);border-radius:14px;margin-bottom:20px;overflow:hidden;}
+.sc-header{padding:16px 24px;border-bottom:1px solid rgba(196,225,233,0.07);display:flex;align-items:center;justify-content:space-between;}
+.sc-header h2{font-size:14px;font-weight:700;color:rgba(196,225,233,0.85);}
+.sc-header p{font-size:12px;color:rgba(196,225,233,0.3);}
+.sc-body{padding:22px 24px;}
+
+/* PLATFORM BREAKDOWN */
+.platform-breakdown{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.platform-row{background:rgba(255,255,255,0.03);border:1px solid rgba(196,225,233,0.07);border-radius:10px;padding:16px;}
+.pr-header{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.pr-icon{font-size:18px;}
+.pr-name{font-size:13px;font-weight:700;color:rgba(196,225,233,0.8);}
+.pr-metric{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(196,225,233,0.06);}
+.pr-metric:last-child{border-bottom:none;}
+.pr-metric-label{font-size:11px;color:rgba(196,225,233,0.35);}
+.pr-metric-val{font-size:13px;font-weight:700;color:var(--white);}
+.pr-metric input{background:transparent;border:none;font-family:var(--font);font-size:13px;font-weight:700;color:var(--white);text-align:right;width:90px;outline:none;}
+.pr-metric input::placeholder{color:rgba(255,255,255,0.15);font-size:11px;}
+
+/* TOP POSTS */
+.top-posts{display:flex;flex-direction:column;gap:12px;}
+.post-row{background:rgba(255,255,255,0.03);border:1px solid rgba(196,225,233,0.07);border-radius:10px;padding:14px 18px;display:grid;grid-template-columns:24px 1fr 90px 90px 90px;gap:14px;align-items:center;}
+.post-rank{font-size:12px;font-weight:800;color:var(--gold);text-align:center;}
+.post-desc input{background:transparent;border:none;font-family:var(--font);font-size:13px;color:rgba(196,225,233,0.8);width:100%;outline:none;}
+.post-desc input::placeholder{color:rgba(196,225,233,0.2);}
+.post-metric{text-align:center;}
+.post-metric label{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(196,225,233,0.3);display:block;margin-bottom:4px;}
+.post-metric input{background:transparent;border:none;font-family:var(--font);font-size:13px;font-weight:700;color:var(--white);text-align:center;width:100%;outline:none;}
+.post-metric input::placeholder{color:rgba(255,255,255,0.12);}
+.post-header-row{display:grid;grid-template-columns:24px 1fr 90px 90px 90px;gap:14px;padding:0 18px 8px;border-bottom:1px solid rgba(196,225,233,0.06);margin-bottom:4px;}
+.ph-cell{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(196,225,233,0.25);text-align:center;}
+.ph-cell:nth-child(2){text-align:left;}
+
+/* TEXT AREAS */
+.dark-textarea{width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(196,225,233,0.08);border-radius:8px;padding:12px 16px;font-family:var(--font);font-size:14px;color:rgba(196,225,233,0.8);line-height:1.65;resize:vertical;outline:none;transition:border-color 0.2s;}
+.dark-textarea:focus{border-color:rgba(196,225,233,0.2);background:rgba(255,255,255,0.06);}
+.dark-textarea::placeholder{color:rgba(196,225,233,0.2);}
+
+/* GOALS TABLE */
+.goals-table{width:100%;border-collapse:collapse;}
+.goals-table th{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(196,225,233,0.3);padding:8px 14px;text-align:left;border-bottom:1px solid rgba(196,225,233,0.06);}
+.goals-table td{padding:10px 14px;border-bottom:1px solid rgba(196,225,233,0.04);vertical-align:middle;}
+.goals-table tr:last-child td{border-bottom:none;}
+.goals-table input,.goals-table select{background:transparent;border:none;font-family:var(--font);font-size:13px;color:rgba(196,225,233,0.7);width:100%;outline:none;}
+.goals-table select{cursor:pointer;font-weight:700;}
+.status-met{color:#2ecc71;} .status-partial{color:var(--orange);} .status-notmet{color:var(--red);}
+
+/* NEXT MONTH */
+.recs-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.rec-box{background:rgba(255,255,255,0.03);border:1px solid rgba(196,225,233,0.07);border-radius:10px;padding:18px;}
+.rec-box h3{font-size:12px;font-weight:700;color:rgba(196,225,233,0.5);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px;}
+
+/* SIGN OFF */
+.sign-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:20px;background:rgba(168,144,96,0.07);border:1px solid rgba(168,144,96,0.15);border-radius:10px;padding:18px 22px;}
+.sr-field label{font-size:10px;font-weight:700;color:rgba(168,144,96,0.6);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:5px;}
+.sr-field input{background:rgba(255,255,255,0.06);border:1px solid rgba(196,225,233,0.1);border-radius:6px;padding:8px 12px;font-family:var(--font);font-size:13px;color:var(--gold);width:100%;outline:none;}
+.sr-field input::placeholder{color:rgba(168,144,96,0.3);}
+
+@media print{
+  body{background:white;}
+  .topbar,.topbar-right,.tb-btn{display:none!important;}
+  .client-header,.stats-row,.section-card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .stat-input,.dark-textarea,.pr-metric input,.post-desc input,.post-metric input,.goals-table input,.sr-field input,.client-name-input,.client-period input{color:black!important;}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo">ravvis <span>media</span></div>
+    <div class="divider"></div>
+    <div class="report-badge">Client Performance Dashboard</div>
+  </div>
+  <div class="topbar-right">
+    <button class="tb-btn" onclick="clearDashboard()">Clear All</button>
+    <button class="tb-btn primary" onclick="window.print()">Export PDF</button>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- CLIENT HEADER -->
+  <div class="client-header">
+    <div class="client-info">
+      <div class="client-tag">Client Report</div>
+      <div><input class="client-name-input" type="text" placeholder="Client / Brand Name"></div>
+      <div class="client-period">
+        Reporting Period:
+        <input type="text" placeholder="e.g. May 2025" style="width:110px;">
+        &nbsp; Prepared by: <input type="text" placeholder="Your name" style="width:120px;">
+      </div>
+    </div>
+    <div class="client-right">
+      <div class="primary-platform">
+        <label>Primary Platform</label>
+        <select>
+          <option>Instagram</option>
+          <option>Facebook</option>
+          <option>TikTok</option>
+          <option>LinkedIn</option>
+          <option>Multi-platform</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(196,225,233,0.35);display:block;margin-bottom:5px;text-align:right;">Account Health</label>
+        <div style="display:flex;gap:6px;justify-content:flex-end;">
+          <button class="health-badge" style="background:rgba(192,57,43,0.2);color:#e74c3c;border:1px solid rgba(192,57,43,0.3);" onclick="setHealth(this)">Needs Work</button>
+          <button class="health-badge" style="background:rgba(230,126,34,0.2);color:#f39c12;border:1px solid rgba(230,126,34,0.3);" onclick="setHealth(this)">Growing</button>
+          <button class="health-badge" style="background:rgba(45,138,94,0.2);color:#2ecc71;border:1px solid rgba(45,138,94,0.3);" onclick="setHealth(this)">Strong</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEY METRICS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Followers</div>
+      <input class="stat-input" type="text" placeholder="0">
+      <div class="stat-change up">↑ <input type="text" placeholder="+0 this month" class="up"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Reach</div>
+      <input class="stat-input" type="text" placeholder="0">
+      <div class="stat-change up">↑ <input type="text" placeholder="vs last month" class="up"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Impressions</div>
+      <input class="stat-input" type="text" placeholder="0">
+      <div class="stat-change flat"><input type="text" placeholder="vs last month" class="flat"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Engagement Rate</div>
+      <input class="stat-input" type="text" placeholder="0%">
+      <div class="stat-change up">↑ <input type="text" placeholder="vs last month" class="up"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Posts</div>
+      <input class="stat-input" type="text" placeholder="0">
+      <div class="stat-change flat"><input type="text" placeholder="planned vs actual" class="flat"></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Profile Visits</div>
+      <input class="stat-input" type="text" placeholder="0">
+      <div class="stat-change up">↑ <input type="text" placeholder="vs last month" class="up"></div>
+    </div>
+  </div>
+
+  <!-- PLATFORM BREAKDOWN -->
+  <div class="section-card">
+    <div class="sc-header">
+      <h2>Platform Breakdown</h2>
+      <p>Fill in data for each active platform</p>
+    </div>
+    <div class="sc-body">
+      <div class="platform-breakdown">
+        <div class="platform-row">
+          <div class="pr-header"><span class="pr-icon">📸</span><span class="pr-name">Instagram</span></div>
+          <div class="pr-metric"><span class="pr-metric-label">Followers</span><input type="text" placeholder="—"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Growth this month</span><input type="text" placeholder="+0"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Reach</span><input type="text" placeholder="—"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Impressions</span><input type="text" placeholder="—"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Engagement rate</span><input type="text" placeholder="0%"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Saves</span><input type="text" placeholder="—"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Reel views</span><input type="text" placeholder="—"></div>
+        </div>
+        <div class="platform-row">
+          <div class="pr-header"><span class="pr-icon">📘</span><span class="pr-name">Facebook</span></div>
+          <div class="pr-metric"><span class="pr-metric-label">Page likes</span><input type="text" placeholder="—"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Growth this month</span><input type="text" placeholder="+0"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Reach</span><input type="text" placeholder="—"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Impressions</span><input type="text" placeholder="—"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Engagement rate</span><input type="text" placeholder="0%"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Post clicks</span><input type="text" placeholder="—"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Video views</span><input type="text" placeholder="—"></div>
+        </div>
+        <div class="platform-row">
+          <div class="pr-header"><span class="pr-icon">🎵</span><span class="pr-name">TikTok</span></div>
+          <div class="pr-metric"><span class="pr-metric-label">Followers</span><input type="text" placeholder="—"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Growth this month</span><input type="text" placeholder="+0"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Total video views</span><input type="text" placeholder="—"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Profile views</span><input type="text" placeholder="—"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Likes</span><input type="text" placeholder="—"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Comments</span><input type="text" placeholder="—"></div>
+          <div class="pr-metric"><span class="pr-metric-label">Shares</span><input type="text" placeholder="—"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP POSTS -->
+  <div class="section-card">
+    <div class="sc-header">
+      <h2>Top Performing Posts This Month</h2>
+      <p>Select your top 5 posts and record their metrics</p>
+    </div>
+    <div class="sc-body">
+      <div class="top-posts">
+        <div class="post-header-row">
+          <div class="ph-cell">#</div>
+          <div class="ph-cell">Post Description</div>
+          <div class="ph-cell">Reach</div>
+          <div class="ph-cell">Engagement</div>
+          <div class="ph-cell">Saves / Shares</div>
+        </div>
+        <div class="post-row">
+          <div class="post-rank">1</div>
+          <div class="post-desc"><input type="text" placeholder="e.g. Monday carousel — 5 branding mistakes (posted May 6)"></div>
+          <div class="post-metric"><input type="text" placeholder="0"></div>
+          <div class="post-metric"><input type="text" placeholder="0%"></div>
+          <div class="post-metric"><input type="text" placeholder="0 / 0"></div>
+        </div>
+        <div class="post-row">
+          <div class="post-rank">2</div>
+          <div class="post-desc"><input type="text" placeholder="Post description..."></div>
+          <div class="post-metric"><input type="text" placeholder="0"></div>
+          <div class="post-metric"><input type="text" placeholder="0%"></div>
+          <div class="post-metric"><input type="text" placeholder="0 / 0"></div>
+        </div>
+        <div class="post-row">
+          <div class="post-rank">3</div>
+          <div class="post-desc"><input type="text" placeholder="Post description..."></div>
+          <div class="post-metric"><input type="text" placeholder="0"></div>
+          <div class="post-metric"><input type="text" placeholder="0%"></div>
+          <div class="post-metric"><input type="text" placeholder="0 / 0"></div>
+        </div>
+        <div class="post-row">
+          <div class="post-rank">4</div>
+          <div class="post-desc"><input type="text" placeholder="Post description..."></div>
+          <div class="post-metric"><input type="text" placeholder="0"></div>
+          <div class="post-metric"><input type="text" placeholder="0%"></div>
+          <div class="post-metric"><input type="text" placeholder="0 / 0"></div>
+        </div>
+        <div class="post-row">
+          <div class="post-rank">5</div>
+          <div class="post-desc"><input type="text" placeholder="Post description..."></div>
+          <div class="post-metric"><input type="text" placeholder="0"></div>
+          <div class="post-metric"><input type="text" placeholder="0%"></div>
+          <div class="post-metric"><input type="text" placeholder="0 / 0"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GOALS vs RESULTS -->
+  <div class="section-card">
+    <div class="sc-header">
+      <h2>Goals vs Results</h2>
+      <p>How did this month measure against agreed targets?</p>
+    </div>
+    <div class="sc-body">
+      <table class="goals-table">
+        <thead>
+          <tr><th style="width:35%;">Goal</th><th style="width:20%;">Target</th><th style="width:20%;">Achieved</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><input type="text" placeholder="e.g. Grow Instagram followers"></td><td><input type="text" placeholder="e.g. +100"></td><td><input type="text" placeholder="e.g. +78"></td><td><select onchange="styleGoalSelect(this)"><option value="">—</option><option value="met" class="status-met">✓ Met</option><option value="partial" class="status-partial">~ Partial</option><option value="notmet" class="status-notmet">✕ Not Met</option></select></td></tr>
+          <tr><td><input type="text" placeholder="Goal 2"></td><td><input type="text" placeholder="Target"></td><td><input type="text" placeholder="Achieved"></td><td><select onchange="styleGoalSelect(this)"><option value="">—</option><option value="met">✓ Met</option><option value="partial">~ Partial</option><option value="notmet">✕ Not Met</option></select></td></tr>
+          <tr><td><input type="text" placeholder="Goal 3"></td><td><input type="text" placeholder="Target"></td><td><input type="text" placeholder="Achieved"></td><td><select onchange="styleGoalSelect(this)"><option value="">—</option><option value="met">✓ Met</option><option value="partial">~ Partial</option><option value="notmet">✕ Not Met</option></select></td></tr>
+          <tr><td><input type="text" placeholder="Goal 4"></td><td><input type="text" placeholder="Target"></td><td><input type="text" placeholder="Achieved"></td><td><select onchange="styleGoalSelect(this)"><option value="">—</option><option value="met">✓ Met</option><option value="partial">~ Partial</option><option value="notmet">✕ Not Met</option></select></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- INSIGHTS -->
+  <div class="section-card">
+    <div class="sc-header"><h2>Insights & Analysis</h2></div>
+    <div class="sc-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+        <div>
+          <label style="font-size:11px;font-weight:700;color:rgba(45,138,94,0.7);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:8px;">What Worked Well</label>
+          <textarea class="dark-textarea" style="min-height:100px;" placeholder="Which content types performed best? What did the audience respond to most? Any patterns in timing or format that worked?"></textarea>
+        </div>
+        <div>
+          <label style="font-size:11px;font-weight:700;color:rgba(192,57,43,0.7);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:8px;">What Did Not Work</label>
+          <textarea class="dark-textarea" style="min-height:100px;" placeholder="What flopped? What got low engagement or reach? Any content types the audience ignored?"></textarea>
+        </div>
+      </div>
+      <div style="margin-top:16px;">
+        <label style="font-size:11px;font-weight:700;color:rgba(196,225,233,0.4);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:8px;">Audience Insights</label>
+        <textarea class="dark-textarea" style="min-height:80px;" placeholder="What is the data telling us about the audience? Peak engagement times, demographics, what they are saving and sharing most..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEXT MONTH -->
+  <div class="section-card">
+    <div class="sc-header"><h2>Recommendations for Next Month</h2></div>
+    <div class="sc-body">
+      <div class="recs-grid">
+        <div class="rec-box">
+          <h3>Content Strategy Adjustments</h3>
+          <textarea class="dark-textarea" style="min-height:90px;" placeholder="What should we do more of? What format changes? Any new content series or campaigns to try?"></textarea>
+        </div>
+        <div class="rec-box">
+          <h3>Next Month Goals</h3>
+          <textarea class="dark-textarea" style="min-height:90px;" placeholder="Specific targets for next month based on this month's performance and trajectory..."></textarea>
+        </div>
+        <div class="rec-box">
+          <h3>Client Action Items</h3>
+          <textarea class="dark-textarea" style="min-height:80px;" placeholder="What does the client need to provide or do? Footage, approvals, events coming up, budget for ads?"></textarea>
+        </div>
+        <div class="rec-box">
+          <h3>Paid Advertising Notes</h3>
+          <textarea class="dark-textarea" style="min-height:80px;" placeholder="Any ad campaigns running? Results? Should we boost any organic posts next month?"></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIGN OFF -->
+  <div class="sign-row">
+    <div class="sr-field"><label>Report Prepared By</label><input type="text" placeholder="Name + date"></div>
+    <div class="sr-field"><label>Internally Reviewed By</label><input type="text" placeholder="Name + date"></div>
+    <div class="sr-field"><label>Sent to Client On</label><input type="text" placeholder="Date sent"></div>
+  </div>
+
+  <div style="margin-top:16px;padding:12px 0;text-align:center;">
+    <p style="font-size:11px;color:rgba(196,225,233,0.2);">Ravvis Media — Client Performance Dashboard — Duplicate this file for each client each month — File as: ClientName_Report_MonthYear</p>
+  </div>
+
+</div>
+
+<script>
+function setHealth(btn){
+  document.querySelectorAll('.health-badge').forEach(b=>{b.style.fontWeight='700';b.style.opacity='0.4';});
+  btn.style.opacity='1';
+  btn.style.transform='scale(1.05)';
+  setTimeout(()=>btn.style.transform='',200);
+}
+function styleGoalSelect(sel){
+  const v=sel.value;
+  if(v==='met')sel.style.color='#2ecc71';
+  else if(v==='partial')sel.style.color='#f39c12';
+  else if(v==='notmet')sel.style.color='#e74c3c';
+  else sel.style.color='rgba(196,225,233,0.5)';
+}
+function clearDashboard(){
+  if(confirm('Clear all data from this dashboard?')){
+    document.querySelectorAll('input[type=text],textarea').forEach(el=>el.value='');
+    document.querySelectorAll('select').forEach(el=>{el.selectedIndex=0;el.style.color='';});
+    document.querySelectorAll('.health-badge').forEach(b=>b.style.opacity='1');
+  }
+}
+</script>
+</body>
+</html>
